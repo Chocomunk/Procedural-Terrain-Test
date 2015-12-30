@@ -46,7 +46,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 //
 //		for(int i=0; i<MAP_SIZE*dim; i++){
 //			for(int j=0; j<MAP_SIZE*dim; j++){
-//				Gizmos.DrawCube(new Vector3(i*dimension/(MAP_SIZE*dim), (heightMapTable[i,j]-hardReduce)*maxHeight, j*dimension/(MAP_SIZE*dim)), 
+//				Gizmos.DrawCube(new Vector3(i*dimension/(MAP_SIZE*dim), (heightMapTable[i,j]-hardChange)*maxHeight, j*dimension/(MAP_SIZE*dim)), 
 //				                new Vector3(dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim)));
 //			}
 //		}
@@ -79,17 +79,11 @@ public class UnityPerlinGenerator : MonoBehaviour {
 	}
 
 	public  void CalcTerrain(){
-		float i_offset=0, j_offset=0;
 		for(int i=0; i<MAP_SIZE*dim; i++){
 			for(int j=0; j<MAP_SIZE*dim; j++){
-				
-				if(i%MAP_SIZE==0)
-					i_offset+=0;
-				if(j%MAP_SIZE==0)
-					j_offset+=0;
 
-				float x = i+i_offset;
-				float z = j+j_offset;
+				float x = (MAP_SIZE*dim*initPos.z/dimension)+i;
+				float z = (MAP_SIZE*dim*initPos.x/dimension)+j;
 
 				float p1 = -1*groundFrequencyReducer/groundReduceBuffer + 
 					Mathf.PerlinNoise(
@@ -103,7 +97,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 
 				float p3 = -1*hillFrequencyReducer/hillReduceBuffer + 
 					Mathf.PerlinNoise(
-						x*hillNoiseFactor/hillFrequencyDuller,z*hillNoiseFactor/hillFrequencyDuller
+					 	x*hillNoiseFactor/hillFrequencyDuller,z*hillNoiseFactor/hillFrequencyDuller
 						)*hillNoiseScale/hillScaleBuffer;
 
 				if(p1<0)p1=0;
