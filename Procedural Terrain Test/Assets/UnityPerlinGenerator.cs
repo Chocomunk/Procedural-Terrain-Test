@@ -3,7 +3,7 @@ using System.Collections;
 
 public class UnityPerlinGenerator : MonoBehaviour {
 
-	public const int MAP_SIZE = 513;
+	public const int MAP_SIZE = 65;
 	public static int dim = 3;
 
 	public float maxHeight = 2;
@@ -41,16 +41,16 @@ public class UnityPerlinGenerator : MonoBehaviour {
 		this.Generate();
 	}
 
-//	void OnDrawGizmos(){
-//		Gizmos.color = new Color(0,0,1,0.25f);
-//
-//		for(int i=0; i<MAP_SIZE*dim; i++){
-//			for(int j=0; j<MAP_SIZE*dim; j++){
-//				Gizmos.DrawCube(new Vector3(i*dimension/(MAP_SIZE*dim), (heightMapTable[i,j]-hardChange)*maxHeight, j*dimension/(MAP_SIZE*dim)), 
-//				                new Vector3(dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim)));
-//			}
-//		}
-//	}
+	void OnDrawGizmos(){
+		Gizmos.color = new Color(0,0,1,0.25f);
+
+		for(int i=0; i<MAP_SIZE*dim; i++){
+			for(int j=0; j<MAP_SIZE*dim; j++){
+				Gizmos.DrawCube(new Vector3(i*dimension/(MAP_SIZE*dim), (heightMapTable[i,j])*maxHeight, j*dimension/(MAP_SIZE*dim)), 
+				                new Vector3(dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim)));
+			}
+		}
+	}
 
 	public void Generate(){
 		CalcTerrain();
@@ -63,7 +63,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 				terrainData.SetHeights(0,0,generatePartitionedTable(i,j));
 
 				GameObject terrainObj = Terrain.CreateTerrainGameObject(terrainData);
-				terrainObj.transform.position = new Vector3(initPos.x+(i*((dimension/dim)-1)),initPos.y,initPos.z+(j*((dimension/dim)-1)));
+				terrainObj.transform.position = new Vector3(initPos.x+(i*((dimension/dim))),initPos.y,initPos.z+(j*((dimension/dim))));
 
 				terrainObj.transform.parent = this.transform;
 				Terrains[i,j] = terrainObj.GetComponent<Terrain>();
@@ -79,32 +79,33 @@ public class UnityPerlinGenerator : MonoBehaviour {
 	}
 
 	public  void CalcTerrain(){
+		NoiseModule noise = new PerlinNoise(1);
 		for(int i=0; i<MAP_SIZE*dim; i++){
 			for(int j=0; j<MAP_SIZE*dim; j++){
 
-				float x = (MAP_SIZE*dim*initPos.z/dimension)+i;
-				float z = (MAP_SIZE*dim*initPos.x/dimension)+j;
+				float x = (MAP_SIZE*dim*initPos.x/dimension)+i;
+				float z = (MAP_SIZE*dim*initPos.z/dimension)+j;
 
 				float p1 = -1*groundFrequencyReducer/groundReduceBuffer + 
 					Mathf.PerlinNoise(
 						x*groundNoiseFactor/groundFrequencyDuller,z*groundNoiseFactor/groundFrequencyDuller
 						)*groundNoiseScale/groundScaleBuffer;
 
-				float p2 = -1*rockFrequencyReducer/rockReduceBuffer + 
-					Mathf.PerlinNoise(
-						x*rockNoiseFactor/rockFrequencyDuller,z*rockNoiseFactor/rockFrequencyDuller
-						)*rockNoiseScale/rockScaleBuffer;
+				float p2 = 
+					noise.Noise2D(
+						x/(rockFrequencyDuller*MAP_SIZE),0/*z/(rockFrequencyDuller*MAP_SIZE)*/
+						)/rockScaleBuffer;
 
 				float p3 = -1*hillFrequencyReducer/hillReduceBuffer + 
-					Mathf.PerlinNoise(
+					noise.Noise2D(
 					 	x*hillNoiseFactor/hillFrequencyDuller,z*hillNoiseFactor/hillFrequencyDuller
 						)*hillNoiseScale/hillScaleBuffer;
 
-				if(p1<0)p1=0;
-				if(p2<0)p2=0;
-				if(p3<0)p3=0;
+//				if(p1<0)p1=0;
+//				if(p2<0)p2=0;
+//				if(p3<0)p3=0;
 
-				heightMapTable[j,i] = p1+p2+p3 -hardChange;
+				heightMapTable[j,i] = p2 -hardChange;
 //				heightMapTable[i,j] = 0.1f*maxHeight;
 //				Debug.Log(i+", "+j+": " + heightMapTable[i,j]);
 			}
@@ -151,7 +152,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 		}
 
 		terrain.SetNeighbors(left,top,right,bottom);
-		fixNeighbors(terrain,right,top);
+//		fixNeighbors(terrain,right,top);
 	}
 
 	void fixNeighbors(Terrain currTerrain, Terrain right, Terrain top){
