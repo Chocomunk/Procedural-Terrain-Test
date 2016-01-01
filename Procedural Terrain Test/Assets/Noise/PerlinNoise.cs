@@ -3,6 +3,8 @@ using System.Collections;
 
 public class PerlinNoise : NoiseModule {
 
+	static float sqr2 = Mathf.Sqrt(2);
+
 	public PerlinNoise(int seed) : base(seed){}
 
 	/// <summary>
@@ -36,14 +38,14 @@ public class PerlinNoise : NoiseModule {
 		s = NoiseUtil.PerlinFade(fy0);
 
 		na0 = NoiseUtil.Gradient2D(hash_perm[ix0 + hash_perm[iy0]], fx0, fy0);		//Interpolate along 4 corners
-		na1 = NoiseUtil.Gradient2D(hash_perm[ix0 + hash_perm[iy1]], fx0, fy1);
+		na1 = NoiseUtil.Gradient2D(hash_perm[ix1 + hash_perm[iy0]], fx1, fy0);
 		n0 = NoiseUtil.LERP(na0, na1, t);
-		na0 = NoiseUtil.Gradient2D(hash_perm[ix1 + hash_perm[iy0]], fx1, fy0);
+		na0 = NoiseUtil.Gradient2D(hash_perm[ix0 + hash_perm[iy1]], fx0, fy1);
 		na1 = NoiseUtil.Gradient2D(hash_perm[ix1 + hash_perm[iy1]], fx1, fy1);
 		n1 = NoiseUtil.LERP(na0, na1, t);
 
-		return NoiseUtil.LERP(n0,n1,s);							//Interpolate along two noise values
-//		return 0.507f * NoiseUtil.LERP(n0,n1,s);
+//		return NoiseUtil.LERP(n0,n1,s);							//Interpolate along two noise values
+		return 0.507f * NoiseUtil.LERP(n0,n1,s)*sqr2;
 	}
 
 	/// <summary>
@@ -64,19 +66,17 @@ public class PerlinNoise : NoiseModule {
 		s = NoiseUtil.PerlinFade(fy0);
 		
 		nb0 = NoiseUtil.Gradient3D(hash_perm[ix0 + hash_perm[iy0 + hash_perm[iz0]]], fx0, fy0, fz0);	//Interpolate along 8 corners
-		nb1 = NoiseUtil.Gradient3D(hash_perm[ix0 + hash_perm[iy0 + hash_perm[iz1]]], fx0, fy0, fz1);
+		nb1 = NoiseUtil.Gradient3D(hash_perm[ix0 + hash_perm[iy0 + hash_perm[iz1]]], fx1, fy0, fz0);
 		na0 = NoiseUtil.LERP(nb0, nb1, r);
-
 		nb0 = NoiseUtil.Gradient3D(hash_perm[ix0 + hash_perm[iy1 + hash_perm[iz0]]], fx0, fy1, fz0);
-		nb1 = NoiseUtil.Gradient3D(hash_perm[ix0 + hash_perm[iy1 + hash_perm[iz1]]], fx0, fy1, fz1);
+		nb1 = NoiseUtil.Gradient3D(hash_perm[ix0 + hash_perm[iy1 + hash_perm[iz1]]], fx1, fy1, fz0);
 		na1 = NoiseUtil.LERP(nb0, nb1, r);
 		n0 = NoiseUtil.LERP(na0, na1, t);
 
-		nb0 = NoiseUtil.Gradient3D(hash_perm[ix1 + hash_perm[iy0 + hash_perm[iz0]]], fx1, fy0, fz0);
+		nb0 = NoiseUtil.Gradient3D(hash_perm[ix1 + hash_perm[iy0 + hash_perm[iz0]]], fx0, fy0, fz1);
 		nb1 = NoiseUtil.Gradient3D(hash_perm[ix1 + hash_perm[iy0 + hash_perm[iz1]]], fx1, fy0, fz1);
 		na0 = NoiseUtil.LERP(nb0, nb1, r);
-
-		nb0 = NoiseUtil.Gradient3D(hash_perm[ix1 + hash_perm[iy1 + hash_perm[iz0]]], fx1, fy1, fz0);
+		nb0 = NoiseUtil.Gradient3D(hash_perm[ix1 + hash_perm[iy1 + hash_perm[iz0]]], fx0, fy1, fz1);
 		nb1 = NoiseUtil.Gradient3D(hash_perm[ix1 + hash_perm[iy1 + hash_perm[iz1]]], fx1, fy1, fz1);
 		na1 = NoiseUtil.LERP(nb0, nb1, r);
 		n1 = NoiseUtil.LERP(na0, na1, t);

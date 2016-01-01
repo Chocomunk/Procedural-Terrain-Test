@@ -45,10 +45,12 @@ public class NoiseModule {
 	/// <param name="persistence">Persistence.</param>
 	public float FractalNoise2D(float x, float y, int octave, float frequency, float amplitude, float lacunarity, float persistence){
 		float sum = 0;
+		float maxValue = 0;
 		for(int i=0; i<octave; i++){
 			sum+=Noise2D(x*frequency,y*frequency)*amplitude;
 			frequency*=lacunarity;
 			amplitude*=persistence;
+			maxValue+=amplitude;
 		}
 		return sum;
 	}
@@ -67,12 +69,14 @@ public class NoiseModule {
 	/// <param name="persistence">Persistence.</param>
 	public float FractalNoise3D(float x, float y, float z, int octave, float frequency, float amplitude, float lacunarity, float persistence){
 		float sum = 0;
+		float maxValue = 0;
 		for(int i=0; i<octave; i++){
 			sum+=Noise3D(x*frequency,y*frequency,z*frequency)*amplitude;
 			frequency*=lacunarity;
 			amplitude*=persistence;
+			maxValue+=amplitude;
 		}
-		return sum;
+		return sum/maxValue;
 	}
 
 	/// <summary>

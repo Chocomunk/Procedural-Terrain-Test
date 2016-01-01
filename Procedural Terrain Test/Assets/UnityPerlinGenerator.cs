@@ -33,6 +33,13 @@ public class UnityPerlinGenerator : MonoBehaviour {
 	public float hillFrequencyReducer = 0;
 	public float hillReduceBuffer = 1;
 
+	[Range(2,16)]
+	public int octaves = 8;
+	public float frequency;
+	public float amplitude;
+	public float lacunarity;
+	public float persistence;
+
 	public Terrain[,] Terrains = new Terrain[dim,dim];
 	public Vector3 initPos;
 	public float[,] heightMapTable = new float[MAP_SIZE*dim,MAP_SIZE*dim];
@@ -41,16 +48,16 @@ public class UnityPerlinGenerator : MonoBehaviour {
 		this.Generate();
 	}
 
-	void OnDrawGizmos(){
-		Gizmos.color = new Color(0,0,1,0.25f);
-
-		for(int i=0; i<MAP_SIZE*dim; i++){
-			for(int j=0; j<MAP_SIZE*dim; j++){
-				Gizmos.DrawCube(new Vector3(i*dimension/(MAP_SIZE*dim), (heightMapTable[i,j])*maxHeight, j*dimension/(MAP_SIZE*dim)), 
-				                new Vector3(dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim)));
-			}
-		}
-	}
+//	void OnDrawGizmos(){
+//		Gizmos.color = new Color(0,0,1,0.25f);
+//
+//		for(int i=0; i<MAP_SIZE*dim; i++){
+//			for(int j=0; j<MAP_SIZE*dim; j++){
+//				Gizmos.DrawCube(new Vector3(j*dimension/(MAP_SIZE*dim), (heightMapTable[i,j])*maxHeight, i*dimension/(MAP_SIZE*dim)), 
+//				                new Vector3(dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim)));
+//			}
+//		}
+//	}
 
 	public void Generate(){
 		CalcTerrain();
@@ -63,17 +70,17 @@ public class UnityPerlinGenerator : MonoBehaviour {
 				terrainData.SetHeights(0,0,generatePartitionedTable(i,j));
 
 				GameObject terrainObj = Terrain.CreateTerrainGameObject(terrainData);
-				terrainObj.transform.position = new Vector3(initPos.x+(i*((dimension/dim))),initPos.y,initPos.z+(j*((dimension/dim))));
+				terrainObj.transform.position = new Vector3(initPos.x+(j*((dimension/dim))),initPos.y,initPos.z+(i*((dimension/dim))));
 
 				terrainObj.transform.parent = this.transform;
-				Terrains[i,j] = terrainObj.GetComponent<Terrain>();
+				Terrains[j,i] = terrainObj.GetComponent<Terrain>();
 			}
 		}
 
 		for(int i=0; i<dim; i++){
 			for(int j=0; j<dim; j++){
-				calcNeighbors(i,j,Terrains[i,j]);
-				Terrains[i,j].Flush();
+				calcNeighbors(j,i,Terrains[j,i]);
+				Terrains[j,i].Flush();
 			}
 		}
 	}
@@ -83,18 +90,19 @@ public class UnityPerlinGenerator : MonoBehaviour {
 		for(int i=0; i<MAP_SIZE*dim; i++){
 			for(int j=0; j<MAP_SIZE*dim; j++){
 
-				float x = (MAP_SIZE*dim*initPos.x/dimension)+i;
-				float z = (MAP_SIZE*dim*initPos.z/dimension)+j;
+				float x = dimension*(initPos.x+j)/(MAP_SIZE*dim);
+				float z = dimension*(initPos.z+i)/(MAP_SIZE*dim);
 
 				float p1 = -1*groundFrequencyReducer/groundReduceBuffer + 
 					Mathf.PerlinNoise(
 						x*groundNoiseFactor/groundFrequencyDuller,z*groundNoiseFactor/groundFrequencyDuller
 						)*groundNoiseScale/groundScaleBuffer;
 
-				float p2 = 
-					noise.Noise2D(
-						x/(rockFrequencyDuller*MAP_SIZE),0/*z/(rockFrequencyDuller*MAP_SIZE)*/
-						)/rockScaleBuffer;
+//				float p2 = 
+//					noise.Noise2D(
+//						x/rockFrequencyDuller,z/rockFrequencyDuller
+//						)/rockScaleBuffer;
+				float p2 = 100*noise.FractalNoise2D(x,z,octaves,frequency,amplitude,lacunarity,persistence)/maxHeight;
 
 				float p3 = -1*hillFrequencyReducer/hillReduceBuffer + 
 					noise.Noise2D(
@@ -105,7 +113,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 //				if(p2<0)p2=0;
 //				if(p3<0)p3=0;
 
-				heightMapTable[j,i] = p2 -hardChange;
+				heightMapTable[i,j] = p2 -hardChange;
 //				heightMapTable[i,j] = 0.1f*maxHeight;
 //				Debug.Log(i+", "+j+": " + heightMapTable[i,j]);
 			}
@@ -121,7 +129,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 //		}
 		for(int i=0; i<MAP_SIZE; i++){
 			for(int j=0; j<MAP_SIZE; j++){
-				table[i,j] = heightMapTable[((x_index)*MAP_SIZE)+j,((y_index)*MAP_SIZE)+i];
+				table[j,i] = heightMapTable[((x_index)*MAP_SIZE)+j,((y_index)*MAP_SIZE)+i];
 			}
 		}
 		return table;
@@ -152,7 +160,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 		}
 
 		terrain.SetNeighbors(left,top,right,bottom);
-//		fixNeighbors(terrain,right,top);
+		fixNeighbors(terrain,right,top);
 	}
 
 	void fixNeighbors(Terrain currTerrain, Terrain right, Terrain top){
