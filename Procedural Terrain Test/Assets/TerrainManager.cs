@@ -2,17 +2,18 @@
 using System.Collections;
 
 public class TerrainManager : MonoBehaviour {
-	
+
 	public GameObject player;
 
-	public const int MAP_SIZE = 65;
-	public static int dim = 3;
+	public int MAP_SIZE = 65;
+	public int dim = 3;
 	
 	public float maxHeight = 1000;
 	public float dimension = 300;
-	
-	public int playerChunkX = 1;
-	public int playerChunkZ = 1;
+	public float baseDimension = 300;
+
+	[HideInInspector]public int playerChunkX = 1;
+	[HideInInspector]public int playerChunkZ = 1;
 
 	public static int initialChunkIndex = 0;
 
@@ -36,7 +37,6 @@ public class TerrainManager : MonoBehaviour {
 
 	protected bool UpdateIndexes()
 	{
-		
 		int currentLocalIndexX = Mathf.CeilToInt(player.transform.position.x/dimension);
 		int currentLocalIndexZ = Mathf.CeilToInt(player.transform.position.z/dimension);
 		

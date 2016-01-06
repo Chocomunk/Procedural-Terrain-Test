@@ -3,10 +3,27 @@ using System.Collections;
 
 public class ChunkManager : TerrainManager {
 
+	public static ChunkManager manager;
+
 	public Vector3 centerPos = new Vector3(0,0,0);
-	public Chunk[,] chunks = new Chunk[dim,dim];
-	
+	public Chunk[,] chunks;
+
+	[Range(2,16)]
+	public int octaves_ground = 8;
+	public float frequency_ground;
+	public float amplitude_ground;
+	public float lacunarity_ground;
+	public float persistence_ground;
+
 	public void Awake(){
+		if (manager == null) {
+			manager = this;
+		} else if (manager != this) {
+			DestroyImmediate (this.gameObject);
+		}
+
+		chunks = new Chunk[manager.dim, manager.dim];
+
 		for(int i=0; i<dim; i++){
 			for(int j=0; j<dim; j++){
 				TerrainData t_data = new TerrainData();
@@ -17,6 +34,10 @@ public class ChunkManager : TerrainManager {
 		}
 
 		Chunk centerChunk = chunks[1,1];
+		centerChunk.SetGlobalPos (centerChunk.globalPosX + centerPos.x - dimension/2,
+		                          centerChunk.globalPosZ + centerPos.y - dimension/2);
+
+		float ratio = baseDimension / dimension;
 
 		for(int i=0; i<dim; i++){
 			for(int j=0; j<dim; j++){
@@ -33,7 +54,7 @@ public class ChunkManager : TerrainManager {
 				thisChunk.GetChunk().basemapDistance = 4000;
 				thisChunk.GetChunk().castShadows = false;
 
-				PatchManager.AddTerrainInfo(x_global,z_global,thisChunk);
+				PatchManager.AddTerrainInfo(x_global*ratio,z_global*ratio,thisChunk);
 			}
 		}
 

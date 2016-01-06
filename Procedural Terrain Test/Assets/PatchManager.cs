@@ -30,7 +30,7 @@ public class PatchManager {
 	public static void QueuePatches(){
 		foreach (TerrainInfo info in patchList){
 			for (int i = 0; i < terrainPatchRes; i++)
-				patchQueue.Enqueue(new TerrainPatch(info.globalX, info.globalZ, info.chunk, ChunkManager.MAP_SIZE * i / terrainPatchRes, ChunkManager.MAP_SIZE * (i + 1) / terrainPatchRes));
+				patchQueue.Enqueue(new TerrainPatch(info.globalX, info.globalZ, info.chunk, ChunkManager.manager.MAP_SIZE * i / terrainPatchRes, ChunkManager.manager.MAP_SIZE * (i + 1) / terrainPatchRes));
 		}
 	}
 }

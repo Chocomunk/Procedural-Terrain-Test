@@ -5,8 +5,8 @@ using System.Threading;
 
 public class TerrainPatch : IPatch
 {
-	private NoiseModule m_mountainNoise = new PerlinNoise(1);
-	private NoiseModule m_plainsNoise = new PerlinNoise(1);
+	private NoiseModule m_mountainNoise;
+	private NoiseModule m_plainsNoise;
 	
 	public TerrainPatch(float globTileX_i, float globTileZ_i, Chunk chunk_i, float h0_i, float h1_i)
 	{
@@ -15,6 +15,9 @@ public class TerrainPatch : IPatch
 		chunk = chunk_i;
 		h0 = h0_i;
 		h1 = h1_i;
+
+		m_mountainNoise = new PerlinNoise (chunk.seed);
+		m_plainsNoise = new PerlinNoise (chunk.seed);
 	}
 	
 	private float globalTileX, globalTileZ, h0, h1;
@@ -22,18 +25,23 @@ public class TerrainPatch : IPatch
 	
 	public void Execute()
 	{
-		int resolution = ChunkManager.MAP_SIZE;
+		ChunkManager m = ChunkManager.manager;
+
+		int resolution = ChunkManager.manager.MAP_SIZE;
+		float size = ChunkManager.manager.baseDimension;
+		float ratio = size / resolution;
+		float sizeRatio = ChunkManager.manager.dimension/size;
+
 		float[,] terrain_map = new float[resolution,resolution];
 
 		for(int i=0; i<resolution; i++){
-			float z = (globalTileZ-1) + i*100/resolution;
+			float z = globalTileZ + i*ratio;
 			for(int j=0; j<resolution; j++){
-				float x = (globalTileX-1) + j*100/resolution;
+				float x = globalTileX + j*ratio;
 
-				terrain_map[i,j] = m_mountainNoise.FractalNoise2D(x,z,8,0.001f,0.1f,2,0.5f);
+				terrain_map[i,j] = m_mountainNoise.FractalNoise2D(x,z,m.octaves_ground,m.frequency_ground*sizeRatio,m.amplitude_ground,m.lacunarity_ground,m.persistence_ground) + 0.5f;
 			}
 		}
-		Debug.Log(globalTileX+", "+globalTileZ);
 		chunk.SetHeights(terrain_map);
 	}
 }

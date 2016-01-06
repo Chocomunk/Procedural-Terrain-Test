@@ -8,15 +8,24 @@ public class Chunk {
 	public float globalPosX = 0;
 	public float globalPosZ = 0;
 
+	private int _seed = 0;
+	public int seed{
+	 	get {
+			return _seed;
+		}
+		private set{
+			_seed = value;
+		}
+	}
+
 	Terrain t_chunk;
 	TerrainData t_data;
-	NoiseModule module;
 
 	public Chunk(Terrain t_chunk, int chunk_x, int chunk_z, int seed){
 		this.t_chunk = t_chunk;
 		this.t_data = t_chunk.terrainData;
 		this.SetChunkPos(chunk_x,chunk_z);
-		this.module = new PerlinNoise(seed);
+		this.seed = seed;
 	}
 
 	public void Activate(){
@@ -31,12 +40,11 @@ public class Chunk {
 	}
 
 	public void SetGlobalPos(float x_world, float z_world){
-		Transform t_trans = this.GetTerrainObject().transform;
 		globalPosX = x_world;
 		globalPosZ = z_world;
-		t_trans.position = new Vector3(
+		t_chunk.transform.position = new Vector3(
 			globalPosX,
-			t_trans.position.y,
+			t_chunk.transform.position.y,
 			globalPosZ);
 	}
 
