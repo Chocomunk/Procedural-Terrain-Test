@@ -1,0 +1,7 @@
+Base path: C:/Programs/IDEs/Unity/Editor/Data
+Cmd: initializeCompiler
+Cmd: compileComputeKernel
+  error: 1 plat 4 at PerlinNoise.hlsl(21): implicit truncation of vector type
+  error: 1 plat 4 at PerlinNoiseCompute.compute(46): pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them
+  error: 1 plat 4 at PerlinNoiseCompute.compute(47): pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them
+  api=4 insize=2850 outsize=2913 ok=1

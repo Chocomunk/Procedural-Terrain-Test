@@ -1,0 +1,86 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel PerlinNoise2D
+
+#include "PerlinNoise.hlsl"
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+struct metaData {
+	float3 groupDim;
+	uint octave;
+	uint hashSize;
+	float amplitude;
+	float frequency;
+	float persistence;
+	float lacunarity;
+};
+
+StructuredBuffer<metaData> m_data;
+StructuredBuffer<float3> input_coords;
+StructuredBuffer<int> hash_table;
+RWStructuredBuffer<float> output_map;
+
+static uint threadsPerGroup = 1024;
+static uint3 threadDim = uint3(32, 32, 1);
+
+float4 hashFunc(float4 inp) {
+	float4 outp;
+	outp.x = hash_table[(int)inp.x];
+	outp.y = hash_table[(int)inp.y];
+	outp.z = hash_table[(int)inp.z];
+	outp.w = hash_table[(int)inp.w];
+	return outp;
+}
+// Total Threads per group: 1024
+[numthreads(32, 32, 1)]
+void PerlinNoise2DOld (uint3 threadId : SV_GroupThreadID, uint3 groupId : SV_GroupID)
+{
+	metaData meta_data = m_data[0];
+	uint3 threadIdxBlock = groupId * uint3(32, 32, 1) + threadId;
+	uint threadIdx = threadIdxBlock.y * (meta_data.groupDim.x * threadDim.x) + threadIdxBlock.x;
+
+	float3 coord = input_coords[threadIdx];
+	
+	float pnoise = 0.;
+	float w = meta_data.amplitude * pow(meta_data.persistence, threadIdxBlock.z);
+	float s = meta_data.frequency * pow(meta_data.lacunarity, threadIdxBlock.z) / 256.0;
+	pnoise = perlinNoise2D(coord.xz*s, 0., meta_data.hashSize) * w;
+
+	output_map[threadIdx] += pnoise + 0.5/meta_data.groupDim.z;
+}
+
+[numthreads(32, 32, 1)]
+void PerlinNoise2D (uint3 threadId : SV_GroupThreadID, uint3 groupId : SV_GroupID) {
+	metaData meta_data = m_data[0];
+	uint3 threadIdxBlock = groupId * uint3(32, 32, 1) + threadId;
+	uint threadIdx = threadIdxBlock.y * (meta_data.groupDim.x * threadDim.x) + threadIdxBlock.x;
+	
+	float w = meta_data.amplitude * pow(meta_data.persistence, threadIdxBlock.z);
+	float s = meta_data.frequency * pow(meta_data.lacunarity, threadIdxBlock.z) / 256.0;
+
+	float3 coord = input_coords[threadIdx];
+	//coord.x = coord.x;
+	coord.xy = coord.xz * s;
+
+	float4 iparts = floor(coord.xyxy) + float4(0.,0.,1.,1.);
+	float4 fparts = frac(coord.xyxy) - float4(0., 0., 1., 1.);
+
+	iparts = modf4(iparts, (float4)(meta_data.hashSize/2. - 1.));
+
+	float2 grads[4];
+	float4 hash = hashFunc(hashFunc(iparts.xzxz) + iparts.yyww);
+	grad2D(hash, grads);
+
+	float n00 = dot(grads[0], float2(fparts.x, fparts.y));
+	float n01 = dot(grads[1], float2(fparts.z, fparts.y));
+	float n10 = dot(grads[2], float2(fparts.x, fparts.w));
+	float n11 = dot(grads[3], float2(fparts.z, fparts.w));
+
+	float2 t = fade(fparts.xy);
+	float2 n = lerp(float2(n00, n10), float2(n01, n11), t.x);
+	float pnoise = lerp(n.x, n.y, t.y) * w;
+
+	output_map[threadIdx] += pnoise + 0.5/meta_data.groupDim.z;
+	//output_map[threadIdx] = ;
+}

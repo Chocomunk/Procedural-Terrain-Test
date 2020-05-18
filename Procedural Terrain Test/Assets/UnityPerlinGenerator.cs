@@ -3,9 +3,11 @@ using System.Collections;
 
 public class UnityPerlinGenerator : MonoBehaviour {
 	
-	public const int MAP_SIZE = 65;
+	public const int MAP_SIZE = 513;
 	public static int dim = 3;
-	
+
+	public int seed = 1;
+
 	public float maxHeight = 3;
 	public float dimension = 300;
 	public float BaseDimension = 300;
@@ -26,16 +28,16 @@ public class UnityPerlinGenerator : MonoBehaviour {
 		this.Generate();
 	}
 	
-	void OnDrawGizmos(){
-		Gizmos.color = new Color(0,0,1,0.25f);
-		
-		for(int i=0; i<MAP_SIZE*dim; i++){
-			for(int j=0; j<MAP_SIZE*dim; j++){
-				Gizmos.DrawCube(new Vector3((j-MAP_SIZE*1.5f)*dimension/(MAP_SIZE*dim), (heightMapTable[i,j])*maxHeight, (i-MAP_SIZE*1.5f)*dimension/(MAP_SIZE*dim)), 
-				                new Vector3(dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim),dimension/(MAP_SIZE*dim)));
-			}
-		}
-	}
+//	void OnDrawGizmos(){
+//		Gizmos.color = new Color (0, 0, 1, 0.25f);
+//		
+//		for (int i=0; i<MAP_SIZE*dim; i++) {
+//			for (int j=0; j<MAP_SIZE*dim; j++) {
+//				Gizmos.DrawCube (new Vector3 ((j - MAP_SIZE * 1.5f) * dimension / (MAP_SIZE * dim), (heightMapTable [i, j]) * maxHeight, (i - MAP_SIZE * 1.5f) * dimension / (MAP_SIZE * dim)), 
+//				                new Vector3 (dimension / (MAP_SIZE * dim), dimension / (MAP_SIZE * dim), dimension / (MAP_SIZE * dim)));
+//			}
+//		}
+//	}
 	
 	public void Generate(){
 		CalcTerrain();
@@ -64,7 +66,7 @@ public class UnityPerlinGenerator : MonoBehaviour {
 	}
 	
 	public  void CalcTerrain(){
-		NoiseModule noise = new PerlinNoise(1);
+		NoiseModule noise = new PerlinNoise(seed);
 		for(int i=0; i<MAP_SIZE*dim; i++){
 			float z = (initPos.z-(BaseDimension*1.5f/dim)) + i*BaseDimension/(MAP_SIZE*dim);
 			for(int j=0; j<MAP_SIZE*dim; j++){
